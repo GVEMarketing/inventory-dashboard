@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GVE London - Inventory Dashboard</title>
+    <meta name="description" content="GVE London luxury car inventory management dashboard">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Variables */
+        :root {
+            /* Colors */
+            --bg-primary: #F8F9FA;
+            --bg-secondary: #FFFFFF;
+            --bg-tertiary: #F5F5F5;
+            --surface: #FFFFFF;
+            
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --text-light: #FFFFFF;
+            
+            --gve-primary: #1F2937;
+            --gve-accent: #cd642f;
+            
+            --success: #10B981;
+            --warning: #FBBF24;
+            --orange: #FB923C;
+            --danger: #EF4444;
+            
+            /* Chart Colors */
+            --chart-green: #10B981;
+            --chart-yellow: #FBBF24;
+            --chart-orange: #FB923C;
+            --chart-red: #EF4444;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            
+            /* Transitions */
+            --transition: all 0.2s ease;
+            
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+        }
+        
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: var(--gve-primary);
+            padding: var(--space-md) 0;
+            box-shadow: var(--shadow);
+        }
+        
+        .header-content {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 0 var(--space-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            color: white;
+        }
+        
+        .logo-img {
+            height: 32px;
+            width: auto;
+        }
+        
+        .logo-divider {
+            color: rgba(255, 255, 255, 0.3);
+            font-weight: 300;
+            font-size: 1.5rem;
+        }
+        
+        .dashboard-text {
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: white;
+        }
+        
+        /* Main Container */
+        .dashboard {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+        }
+        
+        /* Top Grid */
+        .top-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        /* Card Base */
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: var(--space-lg) var(--space-lg) 0;
+        }
+        
+        .card-body {
+            padding: var(--space-lg);
+        }
+        
+        .card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-md);
+        }
+        
+        /* Inventory Overview */
+        .inventory-overview {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .vehicle-ring-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xl);
+            margin-bottom: var(--space-md);
+        }
+        
+        .ring-chart {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+        }
+        
+        .ring-chart svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        
+        .ring-background {
+            fill: none;
+            stroke: #E5E7EB;
+            stroke-width: 12;
+        }
+        
+        .ring-progress {
+            fill: none;
+            stroke: var(--gve-accent);
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+        
+        .ring-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .ring-value {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .ring-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: var(--space-xs);
+        }
+        
+        .vehicle-stats {
+            flex: 1;
+        }
+        
+        .stats-grid {
+            display: grid;
+            gap: var(--space-sm);
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .stat-value {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: 0.875rem;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+        
+        /* Price Distribution */
+        .price-bars {
+            margin-top: var(--space-lg);
+            padding-top: var(--space-lg);
+            border-top: 1px solid #E5E7EB;
+        }
+        
+        .price-bar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+            font-size: 0.875rem;
+        }
+        
+        .price-label {
+            min-width: 80px;
+            color: var(--text-secondary);
+        }
+        
+        .price-bar {
+            flex: 1;
+            height: 20px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .price-fill {
+            height: 100%;
+            background: var(--gve-accent);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .price-count {
+            min-width: 30px;
+            text-align: right;
+            font-weight: 500;
+        }
+        
+        /* Stock Health Score */
+        .health-score-container {
+            text-align: center;
+        }
+        
+        .health-percentage {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+        
+        .health-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-lg);
+        }
+        
+        .age-bars {
+            display: flex;
+            gap: var(--space-sm);
+            align-items: flex-end;
+            height: 120px;
+            margin-top: var(--space-lg);
+        }
+        
+        .age-bar {
+            flex: 1;
+            background: var(--chart-green);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .age-bar:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        
+        .age-bar.green { background: var(--chart-green); }
+        .age-bar.yellow { background: var(--chart-yellow); }
+        .age-bar.orange { background: var(--chart-orange); }
+        .age-bar.red { background: var(--chart-red); }
+        
+        .age-bar-label {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .age-bar-range {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        
+        /* Approaching 60 Days - List Style */
+        .approaching-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            background: #E5E7EB;
+            padding: 2px;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .approaching-item {
+            background: white;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr;
+            gap: var(--space-sm);
+            padding: var(--space-md);
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+        
+        .approaching-item:hover {
+            background: #FEF3C7;
+        }
+        
+        /* Bottom Grid */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: var(--space-xl);
+        }
+        
+        /* Colored Headers for Bottom Row */
+        .card-header-colored {
+            padding: var(--space-md) var(--space-lg);
+            color: white;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .header-dark {
+            background: #374151;
+        }
+        
+        .header-danger {
+            background: #DC2626;
+        }
+        
+        .header-orange {
+            background: #FB923C;
+        }
+        
+        .header-warning {
+            background: #F59E0B;
+        }
+        
+        /* Priority Section - Editable */
+        .priority-list {
+            padding: var(--space-lg);
+        }
+        
+        .priority-display {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .priority-display-item {
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            border-left: 3px solid var(--gve-accent);
+            transition: var(--transition);
+        }
+        
+        .priority-display-item:hover {
+            background: #E5E7EB;
+            transform: translateX(4px);
+        }
+        
+        .priority-display-item::before {
+            content: '🎯';
+            font-size: 1.125rem;
+        }
+        
+        .priority-edit {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .priority-input {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+        
+        .priority-input:focus {
+            outline: none;
+            border-color: var(--gve-accent);
+            box-shadow: 0 0 0 3px rgba(205, 100, 47, 0.1);
+        }
+        
+        .priority-controls {
+            display: flex;
+            gap: var(--space-sm);
+            margin-top: var(--space-md);
+        }
+        
+        .priority-button {
+            padding: var(--space-sm) var(--space-md);
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .priority-button.edit {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+        
+        .priority-button.save {
+            background: var(--gve-accent);
+            color: white;
+        }
+        
+        .priority-button:hover {
+            opacity: 0.8;
+        }
+        
+        /* Sales Enquiries */
+        .enquiries-list {
+            padding: var(--space-lg);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+        
+        .enquiry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        
+        .enquiry-item:hover {
+            background: #E5E7EB;
+        }
+        
+        .enquiry-info {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .brand-badge {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .badge-ferrari { background: #DC0000; }
+        .badge-lamborghini { background: #FFC500; color: #000; }
+        .badge-mclaren { background: #FF8700; }
+        .badge-mercedes { background: #00D2BE; color: #000; }
+        .badge-audi { background: #BB0A30; }
+        
+        .enquiry-model {
+            font-weight: 500;
+        }
+        
+        .enquiry-count {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 0.875rem;
+        }
+        
+        .enquiry-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--orange);
+        }
+        
+        /* Low Stock - Improved */
+        .stock-grid {
+            padding: var(--space-lg);
+            display: grid;
+            gap: var(--space-md);
+        }
+        
+        .stock-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: var(--space-md);
+            align-items: center;
+            padding: var(--space-md);
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stock-status-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+        
+        .status-critical { background: var(--danger); }
+        .status-warning { background: var(--orange); }
+        .status-ok { background: var(--success); }
+        
+        .stock-model-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .stock-model-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        .stock-target {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        .stock-visual {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+        
+        .stock-bar {
+            width: 100px;
+            height: 8px;
+            background: #E5E7EB;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .stock-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .stock-numbers {
+            text-align: right;
+            min-width: 80px;
+        }
+        
+        .stock-current {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        
+        .stock-needed {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Inventory Table */
+        .inventory-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-lg);
+            flex-wrap: wrap;
+            gap: var(--space-md);
+        }
+        
+        .inventory-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .inventory-controls {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .search-input {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            width: 250px;
+            transition: var(--transition);
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--gve-accent);
+            box-shadow: 0 0 0 3px rgba(205, 100, 47, 0.1);
+        }
+        
+        .filter-select {
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            background: white;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--gve-accent);
+        }
+        
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2px;
+            background: #E5E7EB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .inventory-column {
+            background: white;
+        }
+        
+        .column-header {
+            background: var(--bg-tertiary);
+            padding: var(--space-md);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr;
+            gap: var(--space-sm);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .inventory-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1.2fr;
+            gap: var(--space-sm);
+            padding: var(--space-md);
+            border-bottom: 1px solid #F3F4F6;
+            font-size: 0.875rem;
+            transition: var(--transition);
+        }
+        
+        .inventory-row:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .vehicle-make-model {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+        
+        .brand-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.625rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        .tag-ferrari { background: #DC0000; }
+        .tag-lamborghini { background: #FFC500; color: #000; }
+        .tag-mclaren { background: #FF8700; }
+        .tag-mercedes { background: #00D2BE; color: #000; }
+        .tag-audi { background: #BB0A30; }
+        .tag-porsche { background: #000; }
+        .tag-bentley { background: #154734; }
+        .tag-aston { background: #003D2B; }
+        .tag-rolls { background: #6B3AA9; }
+        .tag-bmw { background: #0066CC; }
+        .tag-landrover { background: #005A2B; }
+        .tag-range { background: #005A2B; }
+        .tag-nissan { background: #C3002F; }
+        .tag-noble { background: #000080; }
+        .tag-land-rover { background: #005A2B; }
+        .tag-maserati { background: #0C2340; }
+        .tag-alpine { background: #0252CF; }
+        .tag-ariel { background: #FF6B00; }
+        .tag-lexus { background: #1B1B1B; }
+        .tag-toyota { background: #EB0A1E; }
+        .tag-jaguar { background: #2E1A47; }
+        .tag-alfa { background: #9B0000; }
+        .tag-bugatti { background: #BE0030; }
+        .tag-caterham { background: #00A950; }
+        .tag-dodge { background: #C41230; }
+        .tag-ford { background: #003478; }
+        .tag-genesis { background: #8B4513; }
+        .tag-honda { background: #E40521; }
+        .tag-infiniti { background: #2C2C2C; }
+        .tag-koenigsegg { background: #000; }
+        .tag-lotus { background: #FFD700; color: #000; }
+        .tag-maybach { background: #000; }
+        .tag-mini { background: #000; }
+        .tag-morgan { background: #003A40; }
+        .tag-pagani { background: #000; }
+        .tag-peugeot { background: #00529B; }
+        .tag-ram { background: #ED1C24; }
+        .tag-rivian { background: #3E7CB1; }
+        .tag-saab { background: #000080; }
+        .tag-subaru { background: #0067C0; }
+        .tag-tesla { background: #CC0000; }
+        .tag-volkswagen { background: #001E50; }
+        .tag-volvo { background: #003057; }
+        .tag-other { background: #6B7280; }
+        
+        .age-indicator {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            justify-content: flex-end;
+        }
+        
+        .age-bar-small {
+            width: 60px;
+            height: 6px;
+            background: #E5E7EB;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .age-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .top-grid,
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inventory-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .approaching-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: var(--space-md);
+            }
+            
+            .inventory-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .inventory-controls {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .search-input,
+            .filter-select {
+                width: 100%;
+            }
+            
+            .vehicle-ring-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .age-bars {
+                height: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="\\wsl.localhost\Ubuntu\home\hriday\pics\gve.londonno-background.png" alt="GVE London" class="logo-img">
+                <span class="logo-divider">|</span>
+                <span class="dashboard-text">Inventory Dashboard</span>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Dashboard -->
+    <main class="dashboard">
+        <!-- Top Grid -->
+        <div class="top-grid">
+            <!-- Inventory Overview -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Inventory Overview</h2>
+                </div>
+                <div class="card-body">
+                    <div class="inventory-overview">
+                        <div class="vehicle-ring-container">
+                            <div class="ring-chart">
+                                <svg viewBox="0 0 120 120">
+                                    <circle class="ring-background" cx="60" cy="60" r="50"/>
+                                    <circle class="ring-progress" cx="60" cy="60" r="50"
+                                            stroke-dasharray="314.16"
+                                            stroke-dashoffset="157.08"
+                                            id="vehicleRing"/>
+                                </svg>
+                                <div class="ring-center">
+                                    <div class="ring-value" id="currentVehicles">126</div>
+                                    <div class="ring-label">of 250</div>
+                                </div>
+                            </div>
+                            <div class="vehicle-stats">
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Total Value</span>
+                                        <span class="stat-value" id="totalValue">£16.8M</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Average Price</span>
+                                        <span class="stat-value" id="avgPrice">£133K</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Monthly Trend</span>
+                                        <span class="trend-indicator">↑ 8%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="price-bars">
+                            <div class="price-bar-item">
+                                <span class="price-label">£0-50k</span>
+                                <div class="price-bar">
+                                    <div class="price-fill" style="width: 10%;" id="bar1"></div>
+                                </div>
+                                <span class="price-count" id="count1">11</span>
+                            </div>
+                            <div class="price-bar-item">
+                                <span class="price-label">£50-100k</span>
+                                <div class="price-bar">
+                                    <div class="price-fill" style="width: 25%;" id="bar2"></div>
+                                </div>
+                                <span class="price-count" id="count2">20</span>
+                            </div>
+                            <div class="price-bar-item">
+                                <span class="price-label">£100-250k</span>
+                                <div class="price-bar">
+                                    <div class="price-fill" style="width: 100%;" id="bar3"></div>
+                                </div>
+                                <span class="price-count" id="count3">79</span>
+                            </div>
+                            <div class="price-bar-item">
+                                <span class="price-label">£250k+</span>
+                                <div class="price-bar">
+                                    <div class="price-fill" style="width: 20%;" id="bar4"></div>
+                                </div>
+                                <span class="price-count" id="count4">22</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stock Health Score -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Stock Health Score</h2>
+                </div>
+                <div class="card-body">
+                    <div class="health-score-container">
+                        <div class="health-percentage" id="healthScore">73%</div>
+                        <div class="health-subtitle">Performance Score</div>
+                        <div class="age-bars">
+                            <div class="age-bar green" style="height: 65%;" onclick="filterByAge('0-30')" data-days="0-30">
+                                <span class="age-bar-label">52</span>
+                                <span class="age-bar-range">0-30d</span>
+                            </div>
+                            <div class="age-bar yellow" style="height: 40%;" onclick="filterByAge('30-60')" data-days="30-60">
+                                <span class="age-bar-label">31</span>
+                                <span class="age-bar-range">30-60d</span>
+                            </div>
+                            <div class="age-bar orange" style="height: 25%;" onclick="filterByAge('60-90')" data-days="60-90">
+                                <span class="age-bar-label">19</span>
+                                <span class="age-bar-range">60-90d</span>
+                            </div>
+                            <div class="age-bar red" style="height: 30%;" onclick="filterByAge('90+')" data-days="90+">
+                                <span class="age-bar-label">24</span>
+                                <span class="age-bar-range">90d+</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Approaching 60 Days -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⚠️ Approaching 60 Day Deadline</h2>
+                </div>
+                <div class="card-body">
+                    <div class="approaching-list" id="approachingList">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Bottom Grid -->
+        <div class="bottom-grid">
+            <!-- This Week's Priority -->
+            <div class="card">
+                <div class="card-header-colored header-dark">
+                    <span>★</span>
+                    <span>This Week's Priority</span>
+                </div>
+                <div class="priority-list">
+                    <div id="priorityDisplay" class="priority-display">
+                        <!-- Saved priorities will appear here -->
+                    </div>
+                    <div id="priorityEdit" class="priority-edit" style="display: none;">
+                        <input type="text" class="priority-input" placeholder="🎯 Priority 1: e.g., Ferrari F8 Spider" />
+                        <input type="text" class="priority-input" placeholder="🎯 Priority 2: e.g., McLaren 720S under £150k" />
+                        <input type="text" class="priority-input" placeholder="🎯 Priority 3: e.g., Low mileage Bentayga" />
+                        <input type="text" class="priority-input" placeholder="🎯 Priority 4: e.g., Any Rolls-Royce Cullinan" />
+                    </div>
+                    <div class="priority-controls">
+                        <button class="priority-button edit" id="editPriority">Edit</button>
+                        <button class="priority-button save" id="savePriority" style="display: none;">Save</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sales Enquiries -->
+            <div class="card">
+                <div class="card-header-colored header-orange">
+                    <span>!</span>
+                    <span>Top Sales Enquiries This Week</span>
+                </div>
+                <div class="enquiries-list">
+                    <div class="enquiry-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #F5F5F5; border-radius: 8px; margin-bottom: 8px;">
+                        <div class="brand-badge" style="width: 36px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; background: #BB0A30; color: white; flex-shrink: 0;">AUD</div>
+                        <div style="flex: 1; display: flex; align-items: center; gap: 16px; font-size: 0.875rem;">
+                            <span style="font-weight: 600; min-width: 120px;">A8</span>
+                            <span style="color: #6B7280; min-width: 80px;">KV68NHX</span>
+                            <span style="color: #6B7280; text-align: right; min-width: 60px;">-</span>
+                            <span style="font-weight: 500; text-align: right; flex: 1;">£24,900</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+                            <span style="font-size: 1.25rem; font-weight: 700; color: #FB923C;">3</span>
+                            <span style="font-size: 0.75rem; color: #6B7280;">enquiries</span>
+                        </div>
+                    </div>
+                    <div class="enquiry-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #F5F5F5; border-radius: 8px; margin-bottom: 8px;">
+                        <div class="brand-badge" style="width: 36px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; background: #000000; color: white; flex-shrink: 0;">POR</div>
+                        <div style="flex: 1; display: flex; align-items: center; gap: 16px; font-size: 0.875rem;">
+                            <span style="font-weight: 600; min-width: 120px;">911 GT3</span>
+                            <span style="color: #6B7280; min-width: 80px;">-</span>
+                            <span style="color: #6B7280; text-align: right; min-width: 60px;">-</span>
+                            <span style="font-weight: 500; text-align: right; flex: 1;">£149,900</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+                            <span style="font-size: 1.25rem; font-weight: 700; color: #FB923C;">2</span>
+                            <span style="font-size: 0.75rem; color: #6B7280;">enquiries</span>
+                        </div>
+                    </div>
+                    <div class="enquiry-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #F5F5F5; border-radius: 8px; margin-bottom: 8px;">
+                        <div class="brand-badge" style="width: 36px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; background: #FFC500; color: #000; flex-shrink: 0;">LAM</div>
+                        <div style="flex: 1; display: flex; align-items: center; gap: 16px; font-size: 0.875rem;">
+                            <span style="font-weight: 600; min-width: 120px;">Huracán</span>
+                            <span style="color: #6B7280; min-width: 80px;">-</span>
+                            <span style="color: #6B7280; text-align: right; min-width: 60px;">-</span>
+                            <span style="font-weight: 500; text-align: right; flex: 1;">£126,900</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+                            <span style="font-size: 1.25rem; font-weight: 700; color: #FB923C;">2</span>
+                            <span style="font-size: 0.75rem; color: #6B7280;">enquiries</span>
+                        </div>
+                    </div>
+                    <div class="enquiry-item" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #F5F5F5; border-radius: 8px; margin-bottom: 8px;">
+                        <div class="brand-badge" style="width: 36px; height: 24px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; background: #FF6B00; color: white; flex-shrink: 0;">ARI</div>
+                        <div style="flex: 1; display: flex; align-items: center; gap: 16px; font-size: 0.875rem;">
+                            <span style="font-weight: 600; min-width: 120px;">Nomad</span>
+                            <span style="color: #6B7280; min-width: 80px;">WA17FCP</span>
+                            <span style="color: #6B7280; text-align: right; min-width: 60px;">-</span>
+                            <span style="font-weight: 500; text-align: right; flex: 1;">£61,900</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; margin-left: auto;">
+                            <span style="font-size: 1.25rem; font-weight: 700; color: #FB923C;">2</span>
+                            <span style="font-size: 0.75rem; color: #6B7280;">enquiries</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Low Stock -->
+            <div class="card">
+                <div class="card-header-colored header-warning">
+                    <span>⚠</span>
+                    <span>Low Stock Alert</span>
+                </div>
+                <div class="stock-grid">
+                    <div class="stock-item">
+                        <div class="stock-status-bar status-ok"></div>
+                        <div class="brand-badge badge-audi">AUD</div>
+                        <div class="stock-model-info">
+                            <div class="stock-model-name">Audi R8</div>
+                            <div class="stock-target">Target: 5 units</div>
+                        </div>
+                        <div class="stock-visual">
+                            <div class="stock-bar">
+                                <div class="stock-fill" style="width: 100%; background: var(--success);"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <div class="stock-current" style="color: var(--success);">6</div>
+                                <div class="stock-needed">On target</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-status-bar status-warning"></div>
+                        <div class="brand-badge badge-lamborghini">LAM</div>
+                        <div class="stock-model-info">
+                            <div class="stock-model-name">Lamborghini Huracán</div>
+                            <div class="stock-target">Target: 5 units</div>
+                        </div>
+                        <div class="stock-visual">
+                            <div class="stock-bar">
+                                <div class="stock-fill" style="width: 60%; background: var(--orange);"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <div class="stock-current" style="color: var(--orange);">3</div>
+                                <div class="stock-needed">Need 2</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-status-bar status-critical"></div>
+                        <div class="brand-badge badge-mercedes">MB</div>
+                        <div class="stock-model-info">
+                            <div class="stock-model-name">Mercedes G63</div>
+                            <div class="stock-target">Target: 5 units</div>
+                        </div>
+                        <div class="stock-visual">
+                            <div class="stock-bar">
+                                <div class="stock-fill" style="width: 20%; background: var(--danger);"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <div class="stock-current" style="color: var(--danger);">1</div>
+                                <div class="stock-needed">Need 4</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-status-bar status-ok"></div>
+                        <div class="brand-badge badge-lamborghini">LAM</div>
+                        <div class="stock-model-info">
+                            <div class="stock-model-name">Lamborghini Urus</div>
+                            <div class="stock-target">Target: 5 units</div>
+                        </div>
+                        <div class="stock-visual">
+                            <div class="stock-bar">
+                                <div class="stock-fill" style="width: 100%; background: var(--success);"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <div class="stock-current" style="color: var(--success);">8</div>
+                                <div class="stock-needed">On target</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stock-item">
+                        <div class="stock-status-bar status-warning"></div>
+                        <div class="brand-badge badge-mclaren">MCL</div>
+                        <div class="stock-model-info">
+                            <div class="stock-model-name">McLaren 720S</div>
+                            <div class="stock-target">Target: 5 units</div>
+                        </div>
+                        <div class="stock-visual">
+                            <div class="stock-bar">
+                                <div class="stock-fill" style="width: 40%; background: var(--orange);"></div>
+                            </div>
+                            <div class="stock-numbers">
+                                <div class="stock-current" style="color: var(--orange);">2</div>
+                                <div class="stock-needed">Need 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Inventory List -->
+        <div class="inventory-section">
+            <div class="inventory-header">
+                <h2 class="inventory-title">Current Inventory List</h2>
+                <div class="inventory-controls">
+                    <input type="search" class="search-input" placeholder="Search inventory..." id="searchInput">
+                    <select class="filter-select" id="makeFilter">
+                        <option value="">All Makes</option>
+                        <option value="ferrari">Ferrari</option>
+                        <option value="lamborghini">Lamborghini</option>
+                        <option value="mclaren">McLaren</option>
+                        <option value="porsche">Porsche</option>
+                        <option value="aston">Aston Martin</option>
+                        <option value="mercedes">Mercedes-Benz</option>
+                        <option value="audi">Audi</option>
+                        <option value="bentley">Bentley</option>
+                        <option value="rolls">Rolls-Royce</option>
+                        <option value="bmw">BMW</option>
+                    </select>
+                    <select class="filter-select" id="ageFilter">
+                        <option value="">All Ages</option>
+                        <option value="0-30">0-30 days</option>
+                        <option value="30-60">30-60 days</option>
+                        <option value="60-90">60-90 days</option>
+                        <option value="90+">90+ days</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Inventory columns will be populated by JavaScript -->
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        // Embedded CSV Data
+        const csvData = `Alpine A110 1.8 Turbo R Fernando Alonso Edition DCT Euro 6 2dr,AL73NSO,530,50,119900,Blue,Petrol
+Ariel Nomad 2.4,WA17FCP,4600,11,61900,White,Petrol
+Aston Martin DB11 4.0 V8 Auto Euro 6 (s/s) 2dr,V12JLX,19546,100,74900,Blue,Petrol
+Aston Martin DB11 5.2 V12 Auto Euro 6 (s/s) 2dr,YKZ322,30991,81,67900,Magnetic Silver,Petrol
+Aston Martin DBS 5.2 V12 BiTurbo Ultimate Auto Euro 6 (s/s) 2dr,RX73ZMV,382,122,324900,Buckinghamshire Green,Petrol
+Aston Martin Vantage 6.0 V12 Euro 5 2dr,VX62FWW,44570,9,64900,Silver,Petrol
+Aston Martin Vantage 6.0 V12 S Euro 6 2dr,AF18ENO,9766,107,139900,Black,Petrol
+Audi A8 3.0 TDI V6 50 Tiptronic quattro Euro 6 (s/s) 4dr,KV68NHX,38597,44,24900,Black,Diesel
+Audi Q8 3.0 TDI V6 50 S line Tiptronic quattro Euro 6 (s/s) 5dr,A22GGG,68570,45,41900,Blue,Diesel
+Audi R8 5.2 FSI V10 GT Spyder R Tronic quattro Euro 5 2dr,B9NDY,35742,323,69900,Black,Petrol
+Audi R8 5.2 FSI V10 Plus S Tronic quattro Euro 5 2dr,EO64OTX,14365,60,64900,Panther Black,Petrol
+Audi R8 5.2 FSI V10 Plus S Tronic quattro Euro 6 (s/s) 2dr,V10CLV,35015,36,76400,Ara Blue,Petrol
+Audi RS3 2.5 TFSI Carbon Vorsprung Sportback S Tronic quattro Euro 6 (s/s) 5dr,M412SHY,246,66,63000,Grey,Petrol
+Audi RS5 2.9 TFSI V6 Carbon Black Tiptronic quattro Euro 6 (s/s) 2dr,MX20MVL,28600,18,38900,,Petrol
+Audi RSQ8 4.0 TFSI V8 Vorsprung Tiptronic quattro Euro 6 (s/s) 5dr,HW70BNN,50176,56,77900,Black,Petrol
+BMW 8 Series 5.0 850Ci Ci 2dr,C12GAH,88652,169,34900,,Petrol
+BMW Alpina B5 4.4 BiTurbo V8 Switchtronic AWD Euro 6 4dr,RV19ORW,21323,2,69900,Alpina Blue,Petrol
+BMW Alpina B5 4dr,KF18UVP,2447,161,84900,,Petrol
+BMW M4 3.0 BiTurbo Competition DCT Euro 6 (s/s) 2dr,S777FEY,19028,17,38900,Blue,Petrol
+BMW M5 4.4i V8 Competition Steptronic xDrive Euro 6 (s/s) 4dr,F9OKC,29315,44,67900,Brands Hatch Grey,Petrol
+Bentley Bentayga 4.0 V8 Auto 4WD Euro 6 (s/s) 5dr,LL20PVA,33808,28,84900,Black,Petrol
+Bentley Bentayga 6.0 W12 Auto 4WD Euro 6 (s/s) 5dr,E3BAG,97307,0,44900,Blue,Petrol
+Bentley Bentayga 6.0 W12 Auto 4WD Euro 6 (s/s) 5dr,YH51BOS,62297,65,64900,White,Petrol
+Bentley Continental 4.0 V8 GT Auto 4WD Euro 5 2dr,T18NJU,43700,86,43900,White,Petrol
+Ferrari 296 GTS 3.0T V6 Spider F1 DCT Euro 6 (s/s) 2dr 7.45kWh,95MU,2190,11,274900,Red,Petrol
+Ferrari 458 4.5 Italia F1 DCT Euro 5 2dr,F8DTK,24454,134,114900,Black,Petrol
+Ferrari 458 4.5 Italia F1 DCT Euro 5 2dr,B11NNL,21150,1,122490,Red,Petrol
+Ferrari 488 3.9T V8 GTB F1 DCT Euro 6 (s/s) 2dr,SN18XSZ,12436,67,150900,Rosso Corsa,Petrol
+Ferrari 488 3.9T V8 GTB F1 DCT Euro 6 (s/s) 2dr,FE18DVN,12150,223,139900,Grigio Silverstone,Petrol
+Ferrari 488 3.9T V8 Spider F1 DCT Euro 6 (s/s) 2dr,35ASH,20540,269,174900,Rosso Corsa,Petrol
+Ferrari 488 3.9T V8 Spider F1 DCT Euro 6 (s/s) 2dr,WH17DLD,12746,120,164900,Red,Petrol
+Ferrari 599 6.0 V12 GTB Fiorano F1 Euro 4 2dr,KE51MDN,14636,161,99900,Grigio Silverstone,Petrol
+Ferrari 612 5.7 Scaglietti FI 2dr,N300FER,19421,158,74900,Rosso Corsa,Petrol
+Ferrari 812 GTS 6.5 V12 Spider F1 DCT Euro 6 (s/s) 2dr,72DD,5025,219,299900,Black,Petrol
+Ferrari 812 Superfast 6.5 V12 F1 DCT Euro 6 (s/s) 2dr,LH67AHD,17670,39,204900,Blue,Petrol
+Ferrari California 3.8 V8 T F1 DCT Euro 6 (s/s) 2dr,R800MTB,20110,66,78900,White,Petrol
+Ferrari F12 Berlinetta 6.3 V12 F1 DCT Euro 5 (s/s) 2dr,LK65JGZ,2607,126,174900,,Petrol
+Ferrari F12 Berlinetta 6.3 V12 F1 DCT Euro 5 (s/s) 2dr,JOH11S,26681,36,159900,Black,Petrol
+Ferrari F8 Tributo 3.9T V8 F1 DCT Euro 6 (s/s) 2dr,NV71GFZ,7771,0,212900,Red,Petrol
+Ferrari FF 6.3 V12 F1 DCT 4WD Euro 5 (s/s) 3dr,1OUT,28506,127,97900,Black,Petrol
+Ferrari GTC4Lusso 3.9T V8 F1 DCT Euro 6 (s/s) 2dr,CHE353Y,15688,155,129900,Red,Petrol
+Ferrari Portofino M 3.8T V8 F1 DCT Euro 6 (s/s) 2dr,AB11DLN,2755,7,169900,Grigio Silverstone,Petrol
+Ferrari Roma 3.8T V8 Spider F1 DCT Euro 6 (s/s) 2dr,RA24YAN,1825,9,234900,Rosso Corsa,Petrol
+Ferrari SF90 Spider 4.0T V8 7.9kWh F1 DCT 4WD Euro 6 (s/s) 2dr,A19NKT,600,211,499900,Grey,Petrol
+Ferrari SF90 Stradale 4.0T V8 7.9kWh F1 DCT 4WD Euro 6 (s/s) 2dr,RX71YCR,5015,409,299900,Red,Petrol
+Lamborghini Aventador 6.5 V12 LP 700-4 ISR 4WD Euro 5 2dr,Y7DDT,28143,43,169900,Black,Petrol
+Lamborghini Aventador 6.5 V12 LP 700-4 ISR 4WD Euro 5 2dr,HAN117F,20600,18,217900,Black,Petrol
+Lamborghini Aventador 6.5 V12 LP 740-4 S Roadster ISR 4WD Euro 6 2dr,FN18WRT,7863,32,279900,White,Petrol
+Lamborghini Aventador 6.5 V12 LP 770-4 SVJ ISR 4WD Euro 6 2dr,BX19BYN,13500,192,399900,Purple,Petrol
+Lamborghini Gallardo 5.2 V10 LP 560-4 Spyder EGear 4WD Euro 5 2dr,GN61JWX,26705,123,87900,Bianco Monocerus,Petrol
+Lamborghini Huracan 5.2 V10 LP 610-4 LDF 4WD Euro 6 (s/s) 2dr,HA15EMS,14368,11,135900,Bianco Avus,Petrol
+Lamborghini Huracan 5.2 V10 LP 610-4 LDF 4WD Euro 6 (s/s) 2dr,V10OOT,21376,65,124900,Nero Helene,Petrol
+Lamborghini Huracan 5.2 V10 LP 640-2 STO LDF Euro 6 (s/s) 2dr,IGZ1,2978,21,284900,Green,Petrol
+Lamborghini Huracan 5.2 V10 LP 640-2 Tecnica LDF Euro 6 (s/s) 2dr,LG24PMX,238,20,219900,Nero Noctis,Petrol
+Lamborghini Huracan 5.2 V10 LP 640-2 Tecnica LDF Euro 6 (s/s) 2dr,LG73WNR,5637,122,204900,Grey,Petrol
+Lamborghini Huracan 5.2 V10 LP 640-4 EVO LDF 4WD Euro 6 (s/s) 2dr,FG23ZRK,6788,4,234900,Red,Electric
+Lamborghini Huracan 5.2 V10 LP 640-4 Performante LDF 4WD Euro 6 (s/s) 2dr,BR12AZR,19400,8,179900,Grey,Petrol
+Lamborghini Huracan 5.2 V10 LP 640-4 Performante Spyder LDF 4WD Euro 6 (s/s) 2dr,YH51CAN,16505,84,209900,Red,Petrol
+Lamborghini Jalpa 3.5 2dr,D119ELO,32399,72,79900,Red,Petrol
+Lamborghini Revuelto 6.5 V12 HPEV 3.8kWh AMT 4WD Euro 6 2dr,A714NTS,2400,2,529900,Green,Electric
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,LJ22AVN,22257,65,178900,,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,GY69VSG,36458,158,169900,Black,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,LJ21BWK,9487,132,169900,Blu Astraeus,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,AJ11MMY,11591,62,197900,Grigio Telesto,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,BX19BYC,27896,277,184900,Black,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,SN68CGF,35344,325,149900,Grigio Lynx,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,78SLR,8437,165,179900,Nero Helene,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Auto 4WD Euro 6 5dr,FM69YGR,25794,508,152900,Nero Helene,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Graphite Capsule Auto 4WD Euro 6 5dr,F2LNC,28910,38,179900,Nero Noctis,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Graphite Capsule Auto 4WD Euro 6 5dr,OV22XBD,36627,45,174900,Grigio Keres,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Performante Auto 4WD Euro 6 5dr,SUN1M,2836,73,269900,Rosso Mars,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo Performante Auto 4WD Euro 6 5dr,RX22AEF,11221,0,189900,Black,Petrol
+Lamborghini Urus 4.0 V8 BiTurbo S Auto 4WD Euro 6 5dr,RX23AAK,3582,1,219900,Blu Lacus,Petrol
+Land Rover Defender 90 5.0 P525 V8 Carpathian Edition Auto 4WD Euro 6 (s/s) 3dr,US14MMY,11007,58,84900,Grey,Petrol
+Land Rover Range Rover 3.0 D350 MHEV HSE Auto 4WD Euro 6 (s/s) 5dr,WD22CUG,30136,58,84900,Green,Electric
+Land Rover Range Rover Sport 5.0 P575 V8 SVR Auto 4WD Euro 6 (s/s) 5dr,12SDP,36934,58,51900,Estoril Blue,Petrol
+Land Rover Range Rover Sport 5.0 P575 V8 SVR Carbon Edition Auto 4WD Euro 6 (s/s) 5dr,MB21CZD,16840,102,64900,Black,Petrol
+Lexus LFA 4.8 2dr,LS63GJG,7159,890,999900,White,Petrol
+Maserati Grancabrio 4.7 V8 MC MC Shift Euro 5 2dr,KF64JWV,31005,126,64900,Red,Petrol
+Maserati MC20 3.0 V6 Cielo Spyder Convertible DCT Euro 6 (s/s) 2dr,SJ24ONR,420,161,174900,Blue,Petrol
+McLaren 12C 3.8T V8 SSG Euro 5 2dr,WO11JAY,18400,64,70350,White,Petrol
+McLaren 570GT 3.8T V8 SSG Euro 6 (s/s) 2dr,LH68AOU,14321,25,84900,Black,Petrol
+McLaren 570GT 3.8T V8 SSG Euro 6 (s/s) 2dr,MX17CKP,11756,101,77900,Onyx Black,Petrol
+McLaren 570S 3.8T V8 SSG Euro 6 (s/s) 2dr,W7RKK,7378,15,91900,black,Petrol
+McLaren 570S 3.8T V8 SSG Euro 6 (s/s) 2dr,MC57OCC,30415,11,76900,Orange,Petrol
+McLaren 570S 3.8T V8 Spider SSG Euro 6 (s/s) 2dr,MY57OSE,25959,157,89900,Storm Grey,Petrol
+McLaren 570S 3.8T V8 Spider SSG Euro 6 (s/s) 2dr,RS14MMY,18135,106,104900,Black,Petrol
+McLaren 570S 3.8T V8 Spider SSG Euro 6 (s/s) 2dr,M400TRB,36779,1,89900,White,Petrol
+McLaren 675LT 3.8T V8 SSG Euro 6 2dr,YM14RKS,38214,120,179900,Silica White,Petrol
+McLaren 720S 4.0T V8 Performance SSG Euro 6 (s/s) 2dr,V999TMD,8506,10,134900,Saros,Petrol
+McLaren 720S 4.0T V8 SSG Euro 6 (s/s) 2dr,MA20LKJ,17989,182,144900,White,Petrol
+McLaren 720S 4.0T V8 SSG Euro 6 (s/s) 2dr,WU69YXG,22247,50,124900,White,Petrol
+McLaren GT 4.0T V8 SSG Euro 6 (s/s) 2dr,M8HNY,12479,3,109900,Namaka Blue,Petrol
+McLaren GT 4.0T V8 SSG Euro 6 (s/s) 2dr,SJ73OJZ,2604,32,129900,Ventura Orange,Petrol
+Mercedes-Benz 280 SL,TES5,97805,49,179900,,Petrol
+Mercedes-Benz 280 SL 4dr,FMA442F,95477,86,139900,White,Petrol
+Mercedes-Benz C Class 4.0 C63 V8 BiTurbo AMG (Premium) Cabriolet SpdS MCT Euro 6 (s/s) 2dr,AM61WEB,21200,86,37500,Grey,Petrol
+Mercedes-Benz E Class 3.0 E53h BiTurbo MHEV AMG Night Edition (Premium Plus) SpdS TCT 4MATIC+ Euro 6 (s/s) 4dr,C23UMA,36466,17,48900,White,Electric
+Mercedes-Benz E Class 4.0 E63 V8 BiTurbo AMG S (Premium) SpdS MCT 4MATIC+ Euro 6 (s/s) 4dr,AR15AMG,43584,73,40900,White,Petrol
+Mercedes-Benz G Class 4.0 G63 V8 BiTurbo AMG SpdS+9GT 4MATIC Euro 6 (s/s) 5dr,YK19TLH,44485,35,131900,Black,Petrol
+Mercedes-Benz GLC 4.0 GLC63 V8 BiTurbo AMG S (Premium) Coupe SpdS MCT 4MATIC+ Euro 6 (s/s) 5dr,D25AYE,22887,57,47250,Black,Petrol
+Mercedes-Benz S Class 6.0 S65L V12 AMG Final Edition SpdS+7GT Euro 6 (s/s) 4dr,CN70WKL,213,497,219900,Obsidian Black Metallic,Petrol
+Mercedes-Benz Sprinter 2.0 315 CDI HD Premium G-Tronic RWD L3 H2 Euro 6 (s/s) 5dr,OW73JVA,7871,85,179900,Black,Diesel
+Mercedes-Benz V Class 2.0 V220d Sport G-Tronic+ Euro 6 (s/s) 5dr LWB,WA22RXX,30250,92,84900,Black,Petrol
+Mercedes-Benz Vito 2.0 116 CDI Premium G-Tronic RWD L3 Euro 6 (s/s) 5dr (XLWB),WA73UKN,452,465,84900,Grey,Diesel
+Nissan Gt-R 3.8 V6 Recaro Auto 4WD Euro 6 2dr,GTR18D,15448,130,118900,White,Petrol
+Noble M600 2dr,M600TNT,7100,379,199900,Black,Petrol
+Porsche 718 Cayman 4.0 GT4 Euro 6 (s/s) 2dr,LD22DHE,2464,78,82900,Black,Petrol
+Porsche 718 Spyder 4.0 RS Spyder PDK Euro 6 (s/s) 2dr,BP73CHV,128,15,141900,Grey,Petrol
+Porsche 911 3.0T 992 4 Targa PDK 4WD Euro 6 (s/s) 2dr,VX23ROH,6932,51,99900,Grey,Petrol
+Porsche 911 3.0T 992 Carrera 4S PDK 4WD Euro 6 (s/s) 2dr,GX70VGY,30867,38,91900,Black,Petrol
+Porsche 911 3.7T 992 Turbo PDK 4WD Euro 6 (s/s) 2dr,VN21JNZ,22731,141,119900,Jet Black,Petrol
+Porsche 911 4.0 991 GT3 Euro 6 2dr,SEL116K,13932,25,129900,Black,Petrol
+Porsche 911 4.0 991 GT3 PDK Euro 6 2dr,YH18RVR,18804,81,127900,Silver,Petrol
+Porsche 911 4.0 991 GT3 RS PDK Euro 6 2dr,LJ65HDA,11130,598,127900,Ultra Violet,Petrol
+Porsche 911 4.0 991 Speedster Euro 6 2dr,33LAW,4591,133,264900,White,Petrol
+Porsche 911 4.0 992 GT3 PDK Euro 6 2dr,FJ21YRL,12877,368,149900,Shark Blue,Petrol
+Porsche Cayenne 3.0 V6 E-Hybrid 17.9kWh Platinum Edition TiptronicS 4WD Euro 6 (s/s) 5dr (3.6kW Charger),ST23EHF,11887,0,0,Grey,Hybrid
+Porsche Cayenne 4.0T V8 GTS TiptronicS 4WD Euro 6 (s/s) 5dr,S5HYC,26608,51,89900,Beige,Petrol
+Porsche Cayenne 4.0T V8 Turbo TiptronicS 4WD Euro 6 (s/s) 5dr,A11ULH,37202,24,61900,White,Petrol
+Porsche Taycan Performance Plus 93.4kWh Turbo Auto 4WD 4dr,LD70VOV,9376,84,51450,Black,Petrol
+Porsche Taycan Performance Plus 93.4kWh Turbo S Auto 4WD 4dr,HF20PZO,43387,21,55000,White,Petrol
+Rolls-Royce Cullinan 6.75 V12 Auto 4WD Euro 6 5dr,YD23XDA,25922,14,0,Black,Petrol
+Rolls-Royce Cullinan 6.75 V12 Auto 4WD Euro 6 5dr,3GSB,6500,148,247900,Black,Petrol
+Rolls-Royce Dawn 6.6 V12 Auto Euro 6 2dr,MV18PUY,15011,98,174900,Black,Petrol
+Rolls-Royce Ghost 6.6 V12 Auto Euro 6 4dr,R1RXO,62237,67,84900,Grey,Petrol
+Rolls-Royce Wraith 6.6 V12 Auto Euro 6 2dr,HY16XAO,44939,44,104900,Diamond Black,Petrol
+Rolls-Royce Wraith 6.6 V12 Auto Euro 6 2dr,LJ15AKO,18000,653,109900,,Petrol
+Rolls-Royce Wraith 6.6 V12 Auto Euro 6 2dr,YH51WON,23870,93,169900,Grey,Petrol
+Rolls-Royce Wraith 6.6 V12 Auto Euro 6 2dr,RE73YKO,1458,18,399900,Blue,Petrol
+Toyota Land Cruiser LC300 ZX EDITION 3.5L V6,BX24KCE,182,93,86900,White,Petrol`;
+        
+        // Parse CSV data
+        let vehicleData = [];
+        const lines = csvData.split('\n');
+        
+        lines.forEach(line => {
+            const [description, reg, mileage, days, price, color, fuel] = line.split(',');
+            if (description) {
+                vehicleData.push({
+                    description,
+                    reg,
+                    mileage: parseInt(mileage) || 0,
+                    days: parseInt(days) || 0,
+                    price: parseInt(price) || 0,
+                    color,
+                    fuel
+                });
+            }
+        });
+        
+        // Extract make from description
+        function getMake(description) {
+            const makes = {
+                'Ferrari': 'ferrari',
+                'Lamborghini': 'lamborghini',
+                'McLaren': 'mclaren',
+                'Porsche': 'porsche',
+                'Aston Martin': 'aston',
+                'Mercedes': 'mercedes',
+                'Audi': 'audi',
+                'Bentley': 'bentley',
+                'Rolls-Royce': 'rolls',
+                'BMW': 'bmw',
+                'Land Rover': 'land-rover',
+                'Maserati': 'maserati',
+                'Nissan': 'nissan',
+                'Alpine': 'alpine',
+                'Ariel': 'ariel',
+                'Lexus': 'lexus',
+                'Noble': 'noble',
+                'Toyota': 'toyota'
+            };
+            
+            for (const [key, value] of Object.entries(makes)) {
+                if (description.includes(key)) {
+                    return value;
+                }
+            }
+            return 'other';
+        }
+        
+        // Get brand tag
+        function getBrandTag(make) {
+            const tags = {
+                'ferrari': 'FER',
+                'lamborghini': 'LAM',
+                'mclaren': 'MCL',
+                'porsche': 'POR',
+                'aston': 'AST',
+                'mercedes': 'MB',
+                'audi': 'AUD',
+                'bentley': 'BEN',
+                'rolls': 'RR',
+                'bmw': 'BMW',
+                'land-rover': 'LR',
+                'maserati': 'MAS',
+                'nissan': 'NIS',
+                'alpine': 'ALP',
+                'ariel': 'ARI',
+                'lexus': 'LEX',
+                'noble': 'NOB',
+                'toyota': 'TOY'
+            };
+            return tags[make] || 'OTH';
+        }
+        
+        // Priority list functionality
+        const savedPriorities = localStorage.getItem('dashboardPriorities');
+        const priorityDisplay = document.getElementById('priorityDisplay');
+        const priorityEdit = document.getElementById('priorityEdit');
+        const editBtn = document.getElementById('editPriority');
+        const saveBtn = document.getElementById('savePriority');
+        
+        // Load saved priorities
+        if (savedPriorities) {
+            const priorities = JSON.parse(savedPriorities);
+            displayPriorities(priorities);
+        } else {
+            priorityDisplay.innerHTML = '<div class="priority-display-item">Click Edit to add priorities</div>';
+        }
+        
+        function displayPriorities(priorities) {
+            priorityDisplay.innerHTML = priorities
+                .filter(p => p.trim())
+                .map(p => `<div class="priority-display-item">${p}</div>`)
+                .join('');
+        }
+        
+        editBtn.addEventListener('click', () => {
+            const savedPriorities = localStorage.getItem('dashboardPriorities');
+            const priorities = savedPriorities ? JSON.parse(savedPriorities) : ['', '', '', ''];
+            
+            const inputs = priorityEdit.querySelectorAll('.priority-input');
+            inputs.forEach((input, index) => {
+                input.value = priorities[index] || '';
+            });
+            
+            priorityDisplay.style.display = 'none';
+            priorityEdit.style.display = 'flex';
+            editBtn.style.display = 'none';
+            saveBtn.style.display = 'block';
+        });
+        
+        saveBtn.addEventListener('click', () => {
+            const inputs = priorityEdit.querySelectorAll('.priority-input');
+            const priorities = Array.from(inputs).map(input => input.value);
+            
+            localStorage.setItem('dashboardPriorities', JSON.stringify(priorities));
+            displayPriorities(priorities);
+            
+            priorityDisplay.style.display = 'flex';
+            priorityEdit.style.display = 'none';
+            editBtn.style.display = 'block';
+            saveBtn.style.display = 'none';
+        });
+        
+        // Update metrics
+        function updateMetrics() {
+            // Total vehicles and value
+            const totalVehicles = vehicleData.length;
+            const totalValue = vehicleData.reduce((sum, v) => sum + v.price, 0);
+            const avgPrice = totalValue / totalVehicles;
+            
+            document.getElementById('currentVehicles').textContent = totalVehicles;
+            document.getElementById('totalValue').textContent = '£' + (totalValue / 1000000).toFixed(1) + 'M';
+            document.getElementById('avgPrice').textContent = '£' + Math.round(avgPrice / 1000) + 'K';
+            
+            // Update ring chart
+            const percentage = (totalVehicles / 250) * 100;
+            const offset = 314.16 - (percentage / 100 * 314.16);
+            document.getElementById('vehicleRing').style.strokeDashoffset = offset;
+            
+            // Price distribution
+            const priceRanges = [
+                { min: 0, max: 50000, count: 0 },
+                { min: 50000, max: 100000, count: 0 },
+                { min: 100000, max: 250000, count: 0 },
+                { min: 250000, max: Infinity, count: 0 }
+            ];
+            
+            vehicleData.forEach(v => {
+                priceRanges.forEach(range => {
+                    if (v.price > range.min && v.price <= range.max) {
+                        range.count++;
+                    }
+                });
+            });
+            
+            const maxCount = Math.max(...priceRanges.map(r => r.count));
+            priceRanges.forEach((range, i) => {
+                const width = (range.count / maxCount) * 100;
+                document.getElementById(`bar${i + 1}`).style.width = width + '%';
+                document.getElementById(`count${i + 1}`).textContent = range.count;
+            });
+            
+            // Age distribution
+            const ageRanges = [
+                { min: 0, max: 30, count: 0 },
+                { min: 30, max: 60, count: 0 },
+                { min: 60, max: 90, count: 0 },
+                { min: 90, max: Infinity, count: 0 }
+            ];
+            
+            vehicleData.forEach(v => {
+                ageRanges.forEach(range => {
+                    if (v.days > range.min && v.days <= range.max) {
+                        range.count++;
+                    }
+                });
+            });
+            
+            // Update age bars
+            const bars = document.querySelectorAll('.age-bar');
+            const maxAge = Math.max(...ageRanges.map(r => r.count));
+            
+            ageRanges.forEach((range, i) => {
+                const height = (range.count / maxAge) * 100;
+                bars[i].style.height = height + '%';
+                bars[i].querySelector('.age-bar-label').textContent = range.count;
+            });
+            
+            // Calculate health score
+            const avgDays = vehicleData.reduce((sum, v) => sum + v.days, 0) / totalVehicles;
+            const healthScore = Math.max(0, Math.round(100 - (avgDays / 2)));
+            document.getElementById('healthScore').textContent = healthScore + '%';
+            
+            // Update approaching 60 days list
+            const approaching = vehicleData
+                .filter(v => v.days >= 45 && v.days <= 60)
+                .sort((a, b) => b.days - a.days);
+            
+            const approachingList = document.getElementById('approachingList');
+            approachingList.innerHTML = approaching.map(v => {
+                const make = getMake(v.description);
+                const tag = getBrandTag(make);
+                const model = v.description.split(' ').slice(1, 3).join(' ');
+                
+                return `
+                    <div class="approaching-item">
+                        <div class="vehicle-make-model">
+                            <span class="brand-tag tag-${make}">${tag}</span>
+                            <span>${model}</span>
+                        </div>
+                        <div>${v.reg}</div>
+                        <div style="text-align: right;">${v.mileage.toLocaleString()}</div>
+                        <div style="text-align: right;">£${v.price.toLocaleString()}</div>
+                        <div class="age-indicator">
+                            <span style="color: #D97706; font-weight: 600;">${v.days}d</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Update low stock (using fuzzy matching)
+            updateLowStock();
+        }
+        
+        // Update low stock section
+        function updateLowStock() {
+            const targetModels = [
+                { name: 'Audi R8', target: 5, badge: 'badge-audi', tag: 'AUD', color: '#BB0A30' },
+                { name: 'Lamborghini Huracán', target: 5, badge: 'badge-lamborghini', tag: 'LAM', color: '#FFC500' },
+                { name: 'Mercedes G63', target: 5, badge: 'badge-mercedes', tag: 'MB', color: '#00D2BE' },
+                { name: 'Lamborghini Urus', target: 5, badge: 'badge-lamborghini', tag: 'LAM', color: '#FFC500' },
+                { name: 'McLaren 720S', target: 5, badge: 'badge-mclaren', tag: 'MCL', color: '#FF8700' }
+            ];
+            
+            targetModels.forEach(model => {
+                // Fuzzy matching
+                let count = 0;
+                if (model.name.includes('R8')) {
+                    count = vehicleData.filter(v => v.description.includes('R8')).length;
+                } else if (model.name.includes('Huracán')) {
+                    count = vehicleData.filter(v => v.description.includes('Huracan')).length;
+                } else if (model.name.includes('G63')) {
+                    count = vehicleData.filter(v => v.description.includes('G63') || v.description.includes('G Class')).length;
+                } else if (model.name.includes('Urus')) {
+                    count = vehicleData.filter(v => v.description.includes('Urus')).length;
+                } else if (model.name.includes('720S')) {
+                    count = vehicleData.filter(v => v.description.includes('720S')).length;
+                }
+                
+                model.current = count;
+                model.needed = Math.max(0, model.target - count);
+                
+                if (count === 0) {
+                    model.status = 'critical';
+                    model.fillColor = 'var(--danger)';
+                } else if (count < model.target) {
+                    model.status = 'warning';
+                    model.fillColor = 'var(--orange)';
+                } else {
+                    model.status = 'ok';
+                    model.fillColor = 'var(--success)';
+                }
+                
+                model.fillWidth = Math.min((count / model.target) * 100, 100);
+            });
+            
+            // Update UI
+            const stockGrid = document.querySelector('.stock-grid');
+            stockGrid.innerHTML = targetModels.map(model => `
+                <div class="stock-item">
+                    <div class="stock-status-bar status-${model.status}"></div>
+                    <div class="brand-badge ${model.badge}">${model.tag}</div>
+                    <div class="stock-model-info">
+                        <div class="stock-model-name">${model.name}</div>
+                        <div class="stock-target">Target: ${model.target} units</div>
+                    </div>
+                    <div class="stock-visual">
+                        <div class="stock-bar">
+                            <div class="stock-fill" style="width: ${model.fillWidth}%; background: ${model.fillColor};"></div>
+                        </div>
+                        <div class="stock-numbers">
+                            <div class="stock-current" style="color: ${model.fillColor};">${model.current}</div>
+                            <div class="stock-needed">${model.needed > 0 ? `Need ${model.needed}` : 'On target'}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render inventory grid
+        function renderInventory(filteredData = vehicleData) {
+            const grid = document.getElementById('inventoryGrid');
+            const itemsPerColumn = Math.ceil(filteredData.length / 4);
+            const columns = [[], [], [], []];
+            
+            filteredData.forEach((vehicle, index) => {
+                const columnIndex = Math.floor(index / itemsPerColumn);
+                if (columnIndex < 4) {
+                    columns[columnIndex].push(vehicle);
+                }
+            });
+            
+            grid.innerHTML = columns.map(columnData => {
+                const header = `
+                    <div class="column-header">
+                        <span>Make/Model</span>
+                        <span>Reg</span>
+                        <span style="text-align: right;">Miles</span>
+                        <span style="text-align: right;">Price</span>
+                        <span style="text-align: right;">Age</span>
+                    </div>
+                `;
+                
+                const rows = columnData.map(vehicle => {
+                    const make = getMake(vehicle.description);
+                    const tag = getBrandTag(make);
+                    const model = vehicle.description.split(' ').slice(1, 3).join(' ');
+                    const agePercent = Math.min((vehicle.days / 365) * 100, 100);
+                    
+                    let ageColor = '#10B981';
+                    if (vehicle.days > 90) ageColor = '#EF4444';
+                    else if (vehicle.days > 60) ageColor = '#FB923C';
+                    else if (vehicle.days > 30) ageColor = '#FBBF24';
+                    
+                    return `
+                        <div class="inventory-row">
+                            <div class="vehicle-make-model">
+                                <span class="brand-tag tag-${make}">${tag}</span>
+                                <span>${model}</span>
+                            </div>
+                            <div>${vehicle.reg}</div>
+                            <div style="text-align: right;">${vehicle.mileage.toLocaleString()}</div>
+                            <div style="text-align: right;">£${vehicle.price.toLocaleString()}</div>
+                            <div class="age-indicator">
+                                <div class="age-bar-small">
+                                    <div class="age-fill" style="width: ${agePercent}%; background: ${ageColor};"></div>
+                                </div>
+                                <span style="color: ${ageColor}; font-weight: 500;">${vehicle.days}d</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                return `
+                    <div class="inventory-column">
+                        ${header}
+                        ${rows}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Filter functionality
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const selectedMake = document.getElementById('makeFilter').value;
+            const selectedAge = document.getElementById('ageFilter').value;
+            
+            let filtered = vehicleData.filter(vehicle => {
+                // Search filter
+                const searchMatch = !searchTerm || 
+                    vehicle.description.toLowerCase().includes(searchTerm) ||
+                    vehicle.reg.toLowerCase().includes(searchTerm);
+                
+                // Make filter
+                const makeMatch = !selectedMake || getMake(vehicle.description) === selectedMake;
+                
+                // Age filter
+                let ageMatch = true;
+                if (selectedAge) {
+                    if (selectedAge === '0-30') ageMatch = vehicle.days <= 30;
+                    else if (selectedAge === '30-60') ageMatch = vehicle.days > 30 && vehicle.days <= 60;
+                    else if (selectedAge === '60-90') ageMatch = vehicle.days > 60 && vehicle.days <= 90;
+                    else if (selectedAge === '90+') ageMatch = vehicle.days > 90;
+                }
+                
+                return searchMatch && makeMatch && ageMatch;
+            });
+            
+            renderInventory(filtered);
+        }
+        
+        // Filter by age (from clicking bars)
+        function filterByAge(range) {
+            document.getElementById('ageFilter').value = range;
+            applyFilters();
+            
+            // Scroll to inventory
+            document.querySelector('.inventory-section').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start' 
+            });
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('makeFilter').addEventListener('change', applyFilters);
+        document.getElementById('ageFilter').addEventListener('change', applyFilters);
+        
+        // Initialize
+        updateMetrics();
+        renderInventory();
+    </script>
+</body>
+</html>
